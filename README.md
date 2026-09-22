@@ -2,6 +2,8 @@
 
 A refined, responsive restaurant discovery and review web application inspired by Zomato, built with Next.js 15, React 19, Tailwind CSS, and Neon PostgreSQL.
 
+**Live Demo**: https://zomato-lite-now.vercel.app/
+
 ## Features
 
 - **Restaurant Discovery**: Browse curated restaurants with cuisine categories, locations, imagery, and dynamic ratings.
