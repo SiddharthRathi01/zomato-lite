@@ -1,0 +1,6 @@
+{
+  "name": "Zomato Lite",
+  "description": "A refined restaurant discovery and review prototype inspired by Zomato.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
