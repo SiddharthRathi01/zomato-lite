@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, MapPin, Edit3, AlertCircle, Loader2 } from 'lucide-react';
 import { RestaurantImage } from '@/components/RestaurantImage';
@@ -47,43 +47,52 @@ export const RestaurantDetailClient: React.FC<RestaurantDetailClientProps> = ({
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    async function fetchRestaurant() {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch(`/api/restaurants/${restaurantId}`, {
-          cache: 'no-store',
-        });
-        if (!res.ok) {
-          if (res.status === 404) {
-            throw new Error('Restaurant not found');
-          }
-          throw new Error(`Failed to load restaurant (HTTP ${res.status})`);
+  const fetchRestaurant = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/restaurants/${restaurantId}`, {
+        cache: 'no-store',
+      });
+      if (!res.ok) {
+        if (res.status === 404) {
+          throw new Error('Restaurant not found');
         }
-        const json: ApiRestaurantResponse = await res.json();
-        if (isMounted) {
-          setData(json);
-        }
-      } catch (err: unknown) {
-        if (isMounted) {
-          setError(err instanceof Error ? err.message : 'An error occurred');
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        throw new Error(`Failed to load restaurant (HTTP ${res.status})`);
       }
+      const json: ApiRestaurantResponse = await res.json();
+      setData(json);
+      setError(null);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
     }
+  }, [restaurantId]);
 
+  useEffect(() => {
     fetchRestaurant();
 
-    return () => {
-      isMounted = false;
+    const handleUpdate = () => {
+      fetchRestaurant();
     };
-  }, [restaurantId]);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchRestaurant();
+      }
+    };
+
+    window.addEventListener('review-submitted', handleUpdate);
+    window.addEventListener('focus', handleUpdate);
+    window.addEventListener('popstate', handleUpdate);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('review-submitted', handleUpdate);
+      window.removeEventListener('focus', handleUpdate);
+      window.removeEventListener('popstate', handleUpdate);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [fetchRestaurant]);
 
   if (loading) {
     return (

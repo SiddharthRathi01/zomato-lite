@@ -1,8 +1,30 @@
 import React from 'react';
 import { RESTAURANTS } from '@/lib/data';
+import { getRestaurantDetails } from '@/lib/db';
 import { RestaurantGrid } from '@/components/RestaurantGrid';
 
-export default function HomePage() {
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+export default async function HomePage() {
+  const dynamicRestaurants = await Promise.all(
+    RESTAURANTS.map(async (r) => {
+      try {
+        const details = await getRestaurantDetails(r.id);
+        if (details) {
+          return {
+            ...r,
+            rating: details.averageRating ?? r.rating,
+            reviewCount: details.totalReviews,
+          };
+        }
+      } catch (err) {
+        console.error(`Failed to fetch db metrics for restaurant ${r.id}:`, err);
+      }
+      return r;
+    })
+  );
+
   return (
     <section id="home-view">
       {/* Main Header / Editorial Intro */}
@@ -22,7 +44,8 @@ export default function HomePage() {
       </div>
 
       {/* Restaurant Grid: 3 columns desktop, 2 tablet, 1 mobile */}
-      <RestaurantGrid restaurants={RESTAURANTS} />
+      <RestaurantGrid initialRestaurants={dynamicRestaurants} />
     </section>
   );
 }
+

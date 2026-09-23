@@ -2,11 +2,8 @@ import { notFound } from 'next/navigation';
 import { RESTAURANTS } from '@/lib/data';
 import { RestaurantDetailClient } from './RestaurantDetailClient';
 
-export function generateStaticParams() {
-  return RESTAURANTS.map((r) => ({
-    id: r.id.toString(),
-  }));
-}
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function RestaurantDetailPage({
   params,

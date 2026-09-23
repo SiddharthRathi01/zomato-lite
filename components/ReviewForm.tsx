@@ -81,8 +81,15 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({ restaurant }) => {
 
       if (response.status === 201 && data?.success) {
         setIsSubmitted(true);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('review-submitted', { detail: { restaurantId: restaurant.id } }));
+        }
+        router.refresh();
         // Navigate back to the corresponding restaurant detail page
         setTimeout(() => {
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('review-submitted', { detail: { restaurantId: restaurant.id } }));
+          }
           router.push(`/restaurant/${restaurant.id}`);
           router.refresh();
         }, 800);
@@ -116,6 +123,12 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({ restaurant }) => {
           <Link
             id="back-to-restaurant-after-submit-btn"
             href={`/restaurant/${restaurant.id}`}
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('review-submitted', { detail: { restaurantId: restaurant.id } }));
+              }
+              router.refresh();
+            }}
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#1C1C1C] hover:bg-black text-white font-semibold px-8 py-3.5 rounded-xl transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-stone-400"
           >
             <ArrowLeft size={16} />
