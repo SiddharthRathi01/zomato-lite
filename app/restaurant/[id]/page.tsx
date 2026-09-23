@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { RESTAURANTS } from '@/lib/data';
+import { getRestaurantDetails } from '@/lib/db';
 import { RestaurantDetailClient } from './RestaurantDetailClient';
 
 export const dynamic = 'force-dynamic';
@@ -18,10 +19,18 @@ export default async function RestaurantDetailPage({
     notFound();
   }
 
+  // Preload restaurant details directly on the server to eliminate client loading spinners and duplicate round-trips
+  const details = await getRestaurantDetails(restaurant.id);
+
+  if (!details) {
+    notFound();
+  }
+
   return (
     <RestaurantDetailClient
       restaurantId={restaurant.id}
       initialImage={restaurant.image}
+      initialData={details}
     />
   );
 }

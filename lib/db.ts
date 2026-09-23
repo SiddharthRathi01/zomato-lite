@@ -9,6 +9,7 @@ export function getDb() {
 }
 
 export interface RestaurantReviewItem {
+  reviewerName: string;
   rating: number;
   comment: string;
   createdAt: string;
@@ -28,28 +29,27 @@ export interface RestaurantDetailsResult {
 export async function getRestaurantDetails(restaurantId: number): Promise<RestaurantDetailsResult | null> {
   const sql = getDb();
 
-  // 1. Fetch restaurant record
-  const restaurantRows = await sql`
-    SELECT id, name, cuisine, area
-    FROM restaurants
-    WHERE id = ${restaurantId}
-    LIMIT 1;
-  `;
+  // Run restaurant lookup and reviews query in parallel
+  const [restaurantRows, reviewsRows] = await Promise.all([
+    sql`
+      SELECT id, name, cuisine, area
+      FROM restaurants
+      WHERE id = ${restaurantId}
+      LIMIT 1;
+    `,
+    sql`
+      SELECT reviewer_name, rating, comment, created_at
+      FROM reviews
+      WHERE restaurant_id = ${restaurantId}
+      ORDER BY created_at DESC, id DESC;
+    `,
+  ]);
 
   if (restaurantRows.length === 0) {
     return null;
   }
 
   const restaurant = restaurantRows[0];
-
-  // 2. Fetch all reviews for this restaurant, newest first
-  const reviewsRows = await sql`
-    SELECT rating, comment, created_at
-    FROM reviews
-    WHERE restaurant_id = ${restaurantId}
-    ORDER BY created_at DESC, id DESC;
-  `;
-
   const totalReviews = reviewsRows.length;
 
   if (totalReviews === 0) {
@@ -70,6 +70,7 @@ export async function getRestaurantDetails(restaurantId: number): Promise<Restau
   const avgRating = Number((sumRatings / totalReviews).toFixed(1));
 
   const formattedReviews: RestaurantReviewItem[] = reviewsRows.map((r) => ({
+    reviewerName: String(r.reviewer_name || ''),
     rating: Number(r.rating),
     comment: String(r.comment),
     createdAt: r.created_at instanceof Date ? r.created_at.toISOString() : new Date(r.created_at).toISOString(),

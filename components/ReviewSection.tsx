@@ -37,6 +37,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
       {latestReview && (
         <div className="mb-5">
           <LatestReview
+            reviewerName={latestReview.reviewerName}
             rating={latestReview.rating}
             comment={latestReview.comment}
             date={formatDate(latestReview.createdAt)}
@@ -55,6 +56,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
               <ReviewCard
                 key={`${review.createdAt}-${index}`}
                 id={index}
+                reviewerName={review.reviewerName}
                 rating={review.rating}
                 comment={review.comment}
                 date={formatDate(review.createdAt)}

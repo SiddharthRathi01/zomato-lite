@@ -51,24 +51,16 @@ export const RestaurantGrid: React.FC<RestaurantGridProps> = ({
   }, [initial]);
 
   useEffect(() => {
-    refreshMetrics();
-
+    // Only refresh when an actual review submission occurs or when navigated back via popstate
     const handleEvent = () => {
       refreshMetrics();
     };
 
     window.addEventListener('review-submitted', handleEvent);
-    window.addEventListener('focus', handleEvent);
     window.addEventListener('popstate', handleEvent);
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
-        refreshMetrics();
-      }
-    });
 
     return () => {
       window.removeEventListener('review-submitted', handleEvent);
-      window.removeEventListener('focus', handleEvent);
       window.removeEventListener('popstate', handleEvent);
     };
   }, [refreshMetrics]);

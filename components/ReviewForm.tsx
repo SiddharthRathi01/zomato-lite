@@ -19,9 +19,10 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({ restaurant }) => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [errors, setErrors] = useState<{ rating?: boolean; reviewText?: string }>({});
+  const [errors, setErrors] = useState<{ rating?: boolean; reviewText?: string; reviewerName?: string }>({});
 
   const MAX_CHARS = 500;
+  const MAX_NAME_CHARS = 100;
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value;
@@ -44,7 +45,14 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({ restaurant }) => {
     e.preventDefault();
     setSubmitError(null);
 
-    const newErrors: { rating?: boolean; reviewText?: string } = {};
+    const newErrors: { rating?: boolean; reviewText?: string; reviewerName?: string } = {};
+
+    const trimmedName = reviewerName.trim();
+    if (!trimmedName) {
+      newErrors.reviewerName = 'Please enter your name.';
+    } else if (trimmedName.length > MAX_NAME_CHARS) {
+      newErrors.reviewerName = `Name cannot exceed ${MAX_NAME_CHARS} characters.`;
+    }
 
     if (rating === 0) {
       newErrors.rating = true;
@@ -72,6 +80,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({ restaurant }) => {
         },
         body: JSON.stringify({
           restaurantId: restaurant.id,
+          reviewerName: trimmedName,
           rating,
           comment: trimmedText,
         }),
@@ -84,15 +93,10 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({ restaurant }) => {
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('review-submitted', { detail: { restaurantId: restaurant.id } }));
         }
-        router.refresh();
-        // Navigate back to the corresponding restaurant detail page
+        // Direct navigation back without artificial delays
         setTimeout(() => {
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(new CustomEvent('review-submitted', { detail: { restaurantId: restaurant.id } }));
-          }
           router.push(`/restaurant/${restaurant.id}`);
-          router.refresh();
-        }, 800);
+        }, 500);
       } else {
         const errorMsg = data?.error || `Failed to submit review (HTTP ${response.status})`;
         setSubmitError(errorMsg);
@@ -196,16 +200,30 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({ restaurant }) => {
               htmlFor="reviewer-name-input"
               className="block text-sm font-semibold text-stone-900 mb-1.5"
             >
-              Your name <span className="text-xs font-normal text-stone-400">(optional)</span>
+              Your name <span className="text-[#E23744]">*</span>
             </label>
             <input
               id="reviewer-name-input"
               type="text"
               value={reviewerName}
-              onChange={(e) => setReviewerName(e.target.value)}
-              placeholder="e.g. Rahul Mehta"
-              className="w-full px-4 py-2.5 rounded-xl border border-stone-200 focus:border-[#E23744] focus:ring-2 focus:ring-[#E23744]/20 outline-none text-sm text-stone-800 transition-all placeholder:text-stone-400"
+              onChange={(e) => {
+                setReviewerName(e.target.value);
+                if (errors.reviewerName) {
+                  setErrors((prev) => ({ ...prev, reviewerName: undefined }));
+                }
+              }}
+              placeholder="e.g. Rahul Sharma"
+              maxLength={MAX_NAME_CHARS}
+              className={`w-full px-4 py-2.5 rounded-xl border ${
+                errors.reviewerName ? 'border-[#E23744] ring-1 ring-[#E23744]' : 'border-stone-200'
+              } focus:border-[#E23744] focus:ring-2 focus:ring-[#E23744]/20 outline-none text-sm text-stone-800 transition-all placeholder:text-stone-400`}
+              aria-describedby={errors.reviewerName ? 'reviewer-name-error' : undefined}
             />
+            {errors.reviewerName && (
+              <p id="reviewer-name-error" className="text-xs font-medium text-[#E23744] mt-1" role="alert">
+                {errors.reviewerName}
+              </p>
+            )}
           </div>
 
           {/* Textarea */}

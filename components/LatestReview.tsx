@@ -2,12 +2,13 @@ import React from 'react';
 import { Star } from 'lucide-react';
 
 interface LatestReviewProps {
+  reviewerName?: string;
   rating: number;
   comment: string;
   date: string;
 }
 
-export const LatestReview: React.FC<LatestReviewProps> = ({ rating, comment, date }) => {
+export const LatestReview: React.FC<LatestReviewProps> = ({ reviewerName, rating, comment, date }) => {
   return (
     <div
       id="latest-review-card"
@@ -21,8 +22,16 @@ export const LatestReview: React.FC<LatestReviewProps> = ({ rating, comment, dat
         <span className="text-xs text-stone-400 font-normal">{date}</span>
       </div>
 
-      {/* Star Rating */}
+      {/* Reviewer Name & Star Rating */}
       <div className="flex items-center justify-between gap-3 mb-3">
+        <div>
+          {reviewerName && (
+            <h4 className="text-sm font-bold text-stone-900 leading-snug">
+              {reviewerName}
+            </h4>
+          )}
+        </div>
+
         <div className="flex items-center gap-1">
           <div className="flex text-[#E23744]">
             {[1, 2, 3, 4, 5].map((s) => (

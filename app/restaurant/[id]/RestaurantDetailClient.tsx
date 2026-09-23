@@ -10,6 +10,7 @@ import { ApiRestaurantResponse } from '@/lib/api-types';
 interface RestaurantDetailClientProps {
   restaurantId: number;
   initialImage: string;
+  initialData?: ApiRestaurantResponse;
 }
 
 // Format relative date or ISO date cleanly
@@ -42,9 +43,10 @@ function formatDate(dateStr: string): string {
 export const RestaurantDetailClient: React.FC<RestaurantDetailClientProps> = ({
   restaurantId,
   initialImage,
+  initialData,
 }) => {
-  const [data, setData] = useState<ApiRestaurantResponse | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [data, setData] = useState<ApiRestaurantResponse | null>(initialData || null);
+  const [loading, setLoading] = useState<boolean>(!initialData);
   const [error, setError] = useState<string | null>(null);
 
   const fetchRestaurant = useCallback(async () => {
@@ -62,37 +64,30 @@ export const RestaurantDetailClient: React.FC<RestaurantDetailClientProps> = ({
       setData(json);
       setError(null);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      if (!data) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      }
     } finally {
       setLoading(false);
     }
-  }, [restaurantId]);
+  }, [restaurantId, data]);
 
   useEffect(() => {
-    fetchRestaurant();
+    // Only fetch on mount if initialData was not provided
+    if (!initialData) {
+      fetchRestaurant();
+    }
 
     const handleUpdate = () => {
       fetchRestaurant();
     };
 
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        fetchRestaurant();
-      }
-    };
-
     window.addEventListener('review-submitted', handleUpdate);
-    window.addEventListener('focus', handleUpdate);
-    window.addEventListener('popstate', handleUpdate);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       window.removeEventListener('review-submitted', handleUpdate);
-      window.removeEventListener('focus', handleUpdate);
-      window.removeEventListener('popstate', handleUpdate);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [fetchRestaurant]);
+  }, [initialData, fetchRestaurant]);
 
   if (loading) {
     return (

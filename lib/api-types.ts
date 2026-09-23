@@ -1,4 +1,5 @@
 export interface ApiReview {
+  reviewerName: string;
   rating: number;
   comment: string;
   createdAt: string;

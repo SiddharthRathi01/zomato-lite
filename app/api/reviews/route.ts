@@ -12,9 +12,30 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { restaurantId, rating, comment } = body;
+    const { restaurantId, reviewerName, rating, comment } = body;
 
-    // Validation 1: restaurantId must be a valid number and refer to an existing restaurant
+    // Validation 1: reviewerName exists and is a non-empty string after trimming
+    if (
+      reviewerName === undefined ||
+      reviewerName === null ||
+      typeof reviewerName !== 'string' ||
+      reviewerName.trim().length === 0
+    ) {
+      return NextResponse.json(
+        { error: 'reviewerName must be a non-empty string' },
+        { status: 400 }
+      );
+    }
+
+    const trimmedReviewerName = reviewerName.trim();
+    if (trimmedReviewerName.length > 100) {
+      return NextResponse.json(
+        { error: 'reviewerName cannot exceed 100 characters' },
+        { status: 400 }
+      );
+    }
+
+    // Validation 2: restaurantId must be a valid number and refer to an existing restaurant
     if (
       restaurantId === undefined ||
       restaurantId === null ||
@@ -28,7 +49,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validation 2: rating must be an integer from 1 to 5
+    // Validation 3: rating must be an integer from 1 to 5
     if (
       rating === undefined ||
       rating === null ||
@@ -43,7 +64,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validation 3: comment must be a non-empty string after trimming
+    // Validation 4: comment must be a non-empty string after trimming
     if (
       comment === undefined ||
       comment === null ||
@@ -57,6 +78,13 @@ export async function POST(req: NextRequest) {
     }
 
     const trimmedComment = comment.trim();
+    if (trimmedComment.length > 500) {
+      return NextResponse.json(
+        { error: 'comment cannot exceed 500 characters' },
+        { status: 400 }
+      );
+    }
+
     const sql = getDb();
 
     // Check if restaurant exists in database
@@ -71,10 +99,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Insert review using parameterized SQL without storing averageRating or reviewCount
+    // Insert review using parameterized SQL including reviewer_name
     const result = await sql`
-      INSERT INTO reviews (restaurant_id, rating, comment)
-      VALUES (${restaurantId}, ${rating}, ${trimmedComment})
+      INSERT INTO reviews (restaurant_id, reviewer_name, rating, comment)
+      VALUES (${restaurantId}, ${trimmedReviewerName}, ${rating}, ${trimmedComment})
       RETURNING id;
     `;
 

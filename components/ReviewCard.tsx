@@ -3,12 +3,13 @@ import { Star } from 'lucide-react';
 
 interface ReviewCardProps {
   id?: string | number;
+  reviewerName?: string;
   rating: number;
   comment: string;
   date: string;
 }
 
-export const ReviewCard: React.FC<ReviewCardProps> = ({ id, rating, comment, date }) => {
+export const ReviewCard: React.FC<ReviewCardProps> = ({ id, reviewerName, rating, comment, date }) => {
   return (
     <div
       id={id ? `review-card-${id}` : undefined}
@@ -16,7 +17,12 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({ id, rating, comment, dat
     >
       <div className="flex items-start justify-between gap-4 mb-2.5">
         <div>
-          <span className="text-xs text-stone-400 font-normal block">
+          {reviewerName && (
+            <h4 className="text-sm font-bold text-stone-900 leading-snug">
+              {reviewerName}
+            </h4>
+          )}
+          <span className="text-xs text-stone-400 font-normal block mt-0.5">
             {date}
           </span>
         </div>
