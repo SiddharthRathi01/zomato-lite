@@ -107,7 +107,3 @@ The following scripts are defined in `package.json`:
 - `npm run start`: Starts the Next.js production server on `0.0.0.0:3000`.
 - `npm run lint`: Runs TypeScript type checking (`tsc --noEmit`) to validate type safety across the project without generating build outputs (does not run ESLint).
 - `npm run db:setup`: Executes `scripts/setup-db.ts` to provision database tables (`restaurants`, `reviews`) and seed initial restaurant and review data.
-
-## License
-
-MIT License
